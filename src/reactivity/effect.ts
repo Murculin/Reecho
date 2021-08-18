@@ -112,7 +112,6 @@ export function trigger(
   oldValue?: unknown,
   oldTarget?: Map<unknown, unknown> | Set<unknown>
 ) {
-  // console.log('trigger')
   const depsMap = targetMap.get(target);
   if (!depsMap) {
     return;
@@ -131,7 +130,6 @@ export function trigger(
     if (effects) {
       effects.forEach((effect) => {
         runEach(effect);
-        // effect();
       });
     }
   };
@@ -144,7 +142,7 @@ export function trigger(
       }
     });
   } else {
-    // 对象的处理
+    // 对象/数组正常key的处理
     if (key != undefined) {
       // 说明修改了key
       run(depsMap.get(key));
