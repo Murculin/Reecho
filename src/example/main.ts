@@ -10,13 +10,8 @@ const state = reactive({
 const slogan = ref("hello");
 
 effect(() => {
+	console.log(state);
   app.innerHTML = state.age + "";
-});
-
-effect(() => {
-  const spanEle = document.createElement("span");
-  spanEle.innerHTML = slogan.value;
-  app.appendChild(spanEle);
 });
 
 function addAge() {

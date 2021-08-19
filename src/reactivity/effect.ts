@@ -22,7 +22,6 @@ export interface ReactiveEffect<T = any> {
   // 依赖列表
   deps: Array<Dep>;
   options: ReactiveEffectOptions;
-  // allowRecurse: boolean;
 }
 
 export interface ReactiveEffectOptions {
