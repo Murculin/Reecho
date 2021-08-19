@@ -1,6 +1,9 @@
-import { reactive, ref, effect } from "../index";
+import { reactive, ref, effect, h } from "../index";
 
 const app = document.getElementById("app");
+
+const vNode = h("div", null, [h("p", { class: "p" }, "test")]);
+console.log(vNode);
 
 const state = reactive({
   name: "bob",
@@ -10,7 +13,6 @@ const state = reactive({
 const slogan = ref("hello");
 
 effect(() => {
-	console.log(state);
   app.innerHTML = state.age + "";
 });
 

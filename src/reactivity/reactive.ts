@@ -24,7 +24,12 @@ const mutableHandlers = {
 
     return res;
   },
-  set: (target: object, key: string | symbol, value: any, receiver: object):boolean => {
+  set: (
+    target: object,
+    key: string | symbol,
+    value: any,
+    receiver: object
+  ): boolean => {
     const oldValue = target[key];
 
     // 判断对数组/对象的操作是新增还是删除
