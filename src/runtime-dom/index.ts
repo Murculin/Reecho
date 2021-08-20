@@ -12,7 +12,7 @@ function ensureRender() {
 
 export function createApp(rootComponent, rootProps = null) {
   const { createApp, render } = ensureRender();
-  const app = createApp(rootComponent);
+  const app = createApp(rootComponent, rootProps);
   const { mount } = app;
   app.mount = function (container: Element | string) {
     if (isString(container)) {
@@ -22,6 +22,7 @@ export function createApp(rootComponent, rootProps = null) {
     container.innerHTML = "";
     mount(container);
   };
+
 
   app.render = (vnode, container) => {
     if (isString(container)) {

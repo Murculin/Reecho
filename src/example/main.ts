@@ -1,28 +1,28 @@
-import { reactive, ref, effect, h } from "../index";
+import { reactive, ref, effect, h, createApp } from "../index";
 
-const app = document.getElementById("app");
+const App = () => {
+  const state = reactive({
+    title: "world",
+    count: 0,
+  });
+  const add = () => {
+    state.count += 1;
+  };
+  return () =>
+    h("div", null, [
+      h("p", null, "hello"),
+      h("p", { class: "subtitle" }, state.title),
+      h("p", { class: "count" }, state.count),
+      h(
+        "button",
+        {
+          onClick: () => {
+            add();
+          },
+        },
+        "add"
+      ),
+    ]);
+};
 
-const vNode = h("div", null, [h("p", { class: "p" }, "test")]);
-console.log(vNode);
-
-const state = reactive({
-  name: "bob",
-  age: 18,
-});
-
-const slogan = ref("hello");
-
-effect(() => {
-  app.innerHTML = state.age + "";
-});
-
-function addAge() {
-  state.age += 1;
-  if (state.age >= 24) {
-    slogan.value = "world";
-  }
-}
-
-setInterval(() => {
-  addAge();
-}, 1000);
+createApp(App).mount("#app");
