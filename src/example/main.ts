@@ -1,5 +1,9 @@
 import { reactive, ref, effect, h, createApp } from "../index";
 
+const Child =() => {
+  return 
+}
+
 const App = () => {
   const state = reactive({
     title: "world",
@@ -8,11 +12,12 @@ const App = () => {
   const add = () => {
     state.count += 1;
   };
-  return () =>
-    h("div", null, [
-      h("p", null, "hello"),
-      h("p", { class: "subtitle" }, state.title),
+  return () => {
+    console.log('render')
+    return h("div", null, [
+      h("p", null, state.title),
       h("p", { class: "count" }, state.count),
+
       h(
         "button",
         {
@@ -23,6 +28,7 @@ const App = () => {
         "add"
       ),
     ]);
+  };
 };
 
 createApp(App).mount("#app");

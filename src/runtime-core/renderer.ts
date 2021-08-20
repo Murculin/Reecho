@@ -9,6 +9,7 @@ import {
   updateProps,
 } from "./compontents";
 import { effect } from "src/reactivity";
+import { isArray } from "src/shared";
 
 export interface RendererNode {
   [key: string]: any;
@@ -74,11 +75,11 @@ function renderOpsCreater(options: RendererOptions) {
     createElement,
     patchProp,
     remove,
-    createText,
-    parentNode,
     setText,
     setElementText,
   } = options;
+
+  // 挂载
   function mount(
     vnode: VNode,
     container: RendererElement,
@@ -87,6 +88,7 @@ function renderOpsCreater(options: RendererOptions) {
     patch(null, vnode, container, parentComponent);
   }
 
+  // 比较并更新两个vnode
   const patch: PatchFn = (
     n1: VNode,
     n2: VNode,
@@ -100,7 +102,7 @@ function renderOpsCreater(options: RendererOptions) {
         // 挂载元素
         patchElement(null, n2, container, parentComponent);
       } else if (nextFlags & ShapeFlags.COMPONENT) {
-        // TODO挂载组件
+        // 挂载组件
         patchComponent(null, n2, container, parentComponent);
       }
     } else {
@@ -159,10 +161,15 @@ function renderOpsCreater(options: RendererOptions) {
       // 节点插入容器
       insert(el, container);
     } else {
+      if (n1.type !== n2.type) {
+        // 标签不同直接替换元素
+        replaceVNode(n1, n2, container);
+        return;
+      }
       el = n2.el = n1.el;
       const p1 = n1.props;
       const p2 = n2.props;
-
+      // 比较props
       // 新增props
       if (p2) {
         for (let key in p2) {
@@ -177,7 +184,6 @@ function renderOpsCreater(options: RendererOptions) {
           }
         }
       }
-      // TODO 比较子节点
       patchChildren(n1, n2, el, parentComponent);
     }
   }
@@ -192,6 +198,9 @@ function renderOpsCreater(options: RendererOptions) {
   const replaceVNode = (n1: VNode, n2: VNode, container: RendererElement) => {
     if (n1.shapeFlag & ShapeFlags.COMPONENT) {
       // TODO 卸载组件
+      // TODO beforeUnmount
+      remove(n1.el);
+      // TODO UnMounted
     } else {
       remove(n1.el);
     }
@@ -263,13 +272,19 @@ function renderOpsCreater(options: RendererOptions) {
   }
 
   function updateComponent(n1: VNode, n2: VNode, container: RendererElement) {
+    if (n1.type !== n2.type) {
+      // 组件类型不同直接重新挂载
+      replaceVNode(n1, n2, container);
+      return;
+    }
+
+    // 否则比较props(包括children)
     const instance = (n2.instance = n1.instance);
     const p1 = { ...n1.props, children: n1.children };
     const p2 = { ...n2.props, children: n2.children };
-
     if (shouldComponentUpdate(p1, p2)) {
       instance.next = n2;
-      instance.updated();
+			instance.update();
     } else {
       n2.el = n1.el;
       instance.vnode = n2;
@@ -284,12 +299,101 @@ function renderOpsCreater(options: RendererOptions) {
   ) => {
     let { shapeFlag: prevShapeFlag, children: c1 } = n1;
     let { shapeFlag, children: c2 } = n2;
-    console.log("patchChildren");
     // 文本
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       // 子元素为text,判断前后是否相等，不相等直接更新
       if (c1 !== c2) {
         setElementText(n1.el, c2 as string);
+      }
+    } else {
+      if (!c2 || !c2.length) {
+        n2.el.innerHTML = "";
+      } else if (isArray(c2)) {
+        if (!isArray(c1)) {
+          c2.forEach((child) => {
+            if (child !== null && child !== undefined) {
+              mount(child, container, parentComponent);
+            }
+          });
+          return;
+        }
+        // 双端比较
+        let oldStartIdx = 0;
+        let oldEndIdx = c1.length - 1;
+        let newStartIdx = 0;
+        let newEndIdx = c2.length - 1;
+
+        let oldStartVNode = c1[oldStartIdx];
+        let oldEndVNode = c1[oldEndIdx];
+        let newStartVNode = c2[newStartIdx];
+        let newEndVNode = c2[newEndIdx];
+
+        // 指针交汇前循环执行
+        while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+          if (!oldStartVNode) {
+            oldStartVNode = c1[++oldStartIdx];
+          } else if (!oldEndVNode) {
+            oldEndVNode = c1[--oldEndIdx];
+          } else if (oldStartVNode.key === newStartVNode.key) {
+            // 1：头头比较
+            patch(oldStartVNode, newStartVNode, container);
+            oldStartVNode = c1[++oldStartIdx];
+            newStartVNode = c2[++newStartIdx];
+          } else if (oldEndVNode.key === newEndVNode.key) {
+            // 2： 尾尾比较
+            patch(oldEndVNode, newEndVNode, container);
+            oldEndVNode = c1[--oldEndIdx];
+            newEndVNode = c2[--newEndIdx];
+          } else if (oldStartVNode.key === newEndVNode.key) {
+            // 3: 头尾比较
+            patch(oldStartVNode, newEndVNode, container);
+            container.insertBefore(
+              oldStartVNode.el,
+              oldEndVNode.el.nextSibling
+            );
+            // 更新索引，指向下一个位置
+            oldStartVNode = c1[++oldStartIdx];
+            newEndVNode = c2[--newEndIdx];
+          } else if (oldEndVNode.key === newStartVNode.key) {
+            // 4: 尾头比较
+            patch(oldEndVNode, newStartVNode, container);
+            container.insertBefore(oldEndVNode.el, oldStartVNode.el);
+            oldEndVNode = c1[--oldEndIdx];
+            newStartVNode = c2[++newStartIdx];
+          } else {
+            // 5: 比较失败 遍历旧 children，试图寻找与 newStartVNode 拥有相同 key 值的元素
+            const index = c1.findIndex(
+              (node) => node.key === newStartVNode.key
+            );
+            if (index > 0) {
+              // 找到了，则这个节点需要被移动
+              const vnodeToMove = c1[index];
+              // 调用 patch 函数完成更新
+              patch(vnodeToMove, newStartVNode, container);
+              // 把 vnodeToMove.el 移动到最前面，即 oldStartVNode.el 的前面
+              container.insertBefore(vnodeToMove.el, oldStartVNode.el);
+              // 由于旧 children 中该位置的节点所对应的真实 DOM 已经被移动，所以将其设置为 undefined
+              c1[index] = undefined;
+            } else {
+              // 没找到就挂载新节点
+              mount(newStartVNode, container, oldStartVNode.el);
+            }
+            // 将 newStartIdx 下移一位
+            newStartVNode = c2[++newStartIdx];
+          }
+
+          if (oldEndIdx < oldStartIdx) {
+            // 添加新节点
+            for (let i = newStartIdx; i <= newEndIdx; i++) {
+              mount(c2[i], container);
+            }
+          } else if (newEndIdx < newStartIdx) {
+            // 移除操作
+            for (let i = oldStartIdx; i <= oldEndIdx; i++) {
+              replaceVNode(c1[i], null, container);
+            }
+          }
+        }
       }
     }
     // 元素
@@ -301,13 +405,3 @@ function renderOpsCreater(options: RendererOptions) {
     patch,
   };
 }
-
-const patch: PatchFn = (
-  prevVNode,
-  nextVNode,
-  container,
-  parentComponent = null
-) => {
-  const { shapeFlag: nextFlags } = nextVNode;
-  const { shapeFlag: prevFlags } = prevVNode;
-};
