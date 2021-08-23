@@ -1,6 +1,7 @@
 import { isArray } from "../shared";
 import { ShapeFlags } from "../shared/shapFlags";
 import { Ref } from "../reactivity/index";
+import {ComponentInstance} from './components'
 
 export const Text = Symbol("Text");
 export const Comment = Symbol("Comment");
@@ -43,7 +44,7 @@ export interface VNode<
   children: VNodeNormalizedChildren;
   shapeFlag: number;
   appContext?: any;
-  instance?: any;
+  instance?: ComponentInstance;
 }
 
 export function createVNode(

@@ -35,8 +35,8 @@ class ComputedRefImpl<T> {
       lazy: true,
       scheduler: () => {
         // 依赖追踪只进行一次
-        if (this._dirty) {
-          this._dirty = false;
+        if (!this._dirty) {
+          this._dirty = true;
           trigger(this, TriggerOpTypes.SET, "value");
         }
       },
@@ -49,6 +49,7 @@ class ComputedRefImpl<T> {
       this._value = this.effect();
       this._dirty = false;
     }
+    console.log("get", this._value);
     track(this, TrackOpTypes.GET, "value");
     return this._value;
   }

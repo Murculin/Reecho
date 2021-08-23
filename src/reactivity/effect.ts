@@ -103,6 +103,26 @@ export function track(target: object, type: TrackOpTypes, key: unknown) {
 }
 
 // 触发更新 在setter时调用
+
+// 执行副作用
+const runEach = (effect: ReactiveEffect) => {
+  // 对于有调度器的effect,优先执行调度器函数
+  if (effect.options.scheduler) {
+    effect.options.scheduler(effect);
+  } else {
+    effect();
+  }
+};
+
+// 执行副作用队列
+const run = (effects: Dep) => {
+  if (effects) {
+    effects.forEach((effect) => {
+      runEach(effect);
+    });
+  }
+};
+
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -115,23 +135,6 @@ export function trigger(
   if (!depsMap) {
     return;
   }
-
-  const runEach = (effect: any) => {
-    // 对于有调度器的effect,优先执行调度器函数
-    if (effect.options.scheduler) {
-      effect.options.scheduler(effect);
-    } else {
-      effect();
-    }
-  };
-
-  const run = (effects: any) => {
-    if (effects) {
-      effects.forEach((effect) => {
-        runEach(effect);
-      });
-    }
-  };
 
   if (key === "length" && isArray(target)) {
     // 处理直接修改数组length的情况 ex: a = [1,2] a.length = 5, 此时key为'length'

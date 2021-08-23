@@ -7,9 +7,10 @@ import {
   ComponentInstance,
   shouldComponentUpdate,
   updateProps,
-} from "./compontents";
+} from "./components";
 import { effect } from "src/reactivity";
-import { isArray } from "src/shared";
+import { isArray, invokeArrayFns } from "src/shared";
+import { queueJob, queuePostFlushCb } from "./scheduler";
 
 export interface RendererNode {
   [key: string]: any;
@@ -197,10 +198,17 @@ function renderOpsCreater(options: RendererOptions) {
 
   const replaceVNode = (n1: VNode, n2: VNode, container: RendererElement) => {
     if (n1.shapeFlag & ShapeFlags.COMPONENT) {
-      // TODO 卸载组件
-      // TODO beforeUnmount
+      //  卸载组件
+      // beforeUnmount
+      const { instance } = n1;
+      if (instance.bum) {
+        invokeArrayFns(instance.bum);
+      }
       remove(n1.el);
-      // TODO UnMounted
+      // UnMounted
+      if (instance.um) {
+        invokeArrayFns(instance.um);
+      }
     } else {
       remove(n1.el);
     }
@@ -235,40 +243,60 @@ function renderOpsCreater(options: RendererOptions) {
     container: RendererElement,
     vnode: VNode
   ) {
-    instance.update = effect(() => {
-      if (!instance.isMounted) {
-        console.log("mount component");
-        // 首次挂载
-        // TODO beforeMounted hooks
-
-        // 执行渲染函数并保存在实例上
-        const subTree = instance.render();
-        instance.subTree = subTree;
-        instance.isMounted = true;
-        mount(subTree, container, instance);
-        vnode.el = subTree.el;
-        // Mounted hooks
-      } else {
-        console.log("update component");
-        // 非首次
-        let { next } = instance;
-
-        // TODO beforeUpdate hooks
-
-        if (next) {
-          next.el = vnode.el;
-          updateProps(instance, { ...next.props, children: next.children });
+    instance.update = effect(
+      () => {
+        if (!instance.isMounted) {
+          console.log("mount component");
+          const { bm, m } = instance;
+          // 首次挂载
+          // TODO beforeMounted hooks
+          if (bm) {
+            invokeArrayFns(bm);
+          }
+          // 执行渲染函数并保存在实例上
+          const subTree = instance.render();
+          instance.subTree = subTree;
+          instance.isMounted = true;
+          mount(subTree, container, instance);
+          vnode.el = subTree.el;
+          // Mounted hooks
+          if (m) {
+            // mounted需要在渲染后执行,渲染为异步任务，这里做特殊处理
+            queuePostFlushCb(m);
+          }
         } else {
-          next = vnode;
-        }
-        const nextSubtree = instance.render();
-        const prevSubTree = instance.subTree;
-        instance.subTree = nextSubtree;
-        patch(prevSubTree, nextSubtree, prevSubTree.el, instance);
+          console.log("update component");
+          // 非首次
+          let { next, bu, u } = instance;
 
-        // TODO beforeUpdate hooks
+          // beforeUpdate hooks
+          if (bu) {
+            invokeArrayFns(bu);
+          }
+
+          if (next) {
+            next.el = vnode.el;
+            updateProps(instance, { ...next.props, children: next.children });
+          } else {
+            next = vnode;
+          }
+          const nextSubtree = instance.render();
+          const prevSubTree = instance.subTree;
+          instance.subTree = nextSubtree;
+          patch(prevSubTree, nextSubtree, prevSubTree.el, instance);
+
+          // Updated hooks
+          if (u) {
+            queuePostFlushCb(u);
+          }
+        }
+      },
+      {
+        scheduler: (job) => {
+          queueJob(job);
+        },
       }
-    });
+    );
   }
 
   function updateComponent(n1: VNode, n2: VNode, container: RendererElement) {
@@ -284,7 +312,7 @@ function renderOpsCreater(options: RendererOptions) {
     const p2 = { ...n2.props, children: n2.children };
     if (shouldComponentUpdate(p1, p2)) {
       instance.next = n2;
-			instance.update();
+      instance.update();
     } else {
       n2.el = n1.el;
       instance.vnode = n2;
