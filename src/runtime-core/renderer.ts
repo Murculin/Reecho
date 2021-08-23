@@ -112,7 +112,7 @@ function renderOpsCreater(options: RendererOptions) {
         // 比较元素节点
         patchElement(n1, n2, container, parentComponent, anchor);
       } else if (nextFlags & ShapeFlags.COMPONENT) {
-        // TODO 比较组件节点
+        // 比较组件节点
         patchComponent(n1, n2, container, parentComponent, anchor);
       } else if (nextFlags & ShapeFlags.TEXT_CHILDREN) {
         // 比较文本节点
@@ -259,7 +259,7 @@ function renderOpsCreater(options: RendererOptions) {
         if (!instance.isMounted) {
           const { bm, m } = instance;
           // 首次挂载
-          // TODO beforeMounted hooks
+          // beforeMounted hooks
           if (bm) {
             invokeArrayFns(bm);
           }

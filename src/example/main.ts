@@ -6,12 +6,7 @@ import {
   h,
   createApp,
   Component,
-  onBeforeMount,
   onMounted,
-  onBeforeUpdate,
-  onUpdated,
-  onBeforeUnmount,
-  onUnmounted,
 } from "../index";
 
 interface ChildProps {
@@ -19,10 +14,13 @@ interface ChildProps {
 }
 
 const Child: Component<ChildProps> = (props) => {
+  onMounted(() => {
+    console.log("childMount");
+  });
 
   return () => {
     // console.log("child render");
-    return h("div", null, props.count);
+    return h("div", null, [h("div", null, props.count), props.children]);
   };
 };
 
@@ -42,7 +40,9 @@ const App: Component = () => {
     // console.log("render", showChild.value);
     return h("div", null, [
       h("p", null, state.title),
-      showChild.value ? h(Child, { count: state.count }) : h('div', null, 'end'),
+      showChild.value
+        ? h(Child, { count: state.count }, [h('div', null, 'slot')])
+        : h("div", null, "end"),
       h(
         "button",
         {
