@@ -49,7 +49,6 @@ class ComputedRefImpl<T> {
       this._value = this.effect();
       this._dirty = false;
     }
-    console.log("get", this._value);
     track(this, TrackOpTypes.GET, "value");
     return this._value;
   }

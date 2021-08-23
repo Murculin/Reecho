@@ -19,30 +19,9 @@ interface ChildProps {
 }
 
 const Child: Component<ChildProps> = (props) => {
-  onBeforeMount(() => {
-    console.log("onBeforeMount");
-  });
-  onMounted(() => {
-    console.log("onMounted1");
-  });
-  onMounted(() => {
-    console.log("onMounted2");
-  });
-  onBeforeUpdate(() => {
-    console.log("onBeforeUpdate");
-  });
-  onUpdated(() => {
-    console.log("onUpdated");
-  });
-  onBeforeUnmount(() => {
-    console.log("onBeforeUnmount");
-  });
-  onUnmounted(() => {
-    console.log("onUnmounted");
-  });
 
   return () => {
-    console.log("child render");
+    // console.log("child render");
     return h("div", null, props.count);
   };
 };
@@ -60,10 +39,10 @@ const App: Component = () => {
   });
 
   return () => {
-    console.log("render", showChild.value);
+    // console.log("render", showChild.value);
     return h("div", null, [
       h("p", null, state.title),
-      showChild.value ? h(Child, { count: state.count }) : "",
+      showChild.value ? h(Child, { count: state.count }) : h('div', null, 'end'),
       h(
         "button",
         {

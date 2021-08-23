@@ -44,6 +44,7 @@ type PatchFn = (
   n1: VNode | null, // null means this is a mount
   n2: VNode,
   container: RendererElement,
+  parant?: any,
   anchor?: RendererNode | null
 ) => void;
 
@@ -80,31 +81,24 @@ function renderOpsCreater(options: RendererOptions) {
     setElementText,
   } = options;
 
-  // 挂载
-  function mount(
-    vnode: VNode,
-    container: RendererElement,
-    parentComponent?: any
-  ) {
-    patch(null, vnode, container, parentComponent);
-  }
-
   // 比较并更新两个vnode
   const patch: PatchFn = (
     n1: VNode,
     n2: VNode,
     container: RendererElement,
-    parentComponent = null
+    parentComponent = null,
+    anchor = null
   ) => {
     if (!n1) {
       const { shapeFlag: nextFlags } = n2;
       // 挂载
       if (nextFlags & ShapeFlags.ELEMENT) {
         // 挂载元素
-        patchElement(null, n2, container, parentComponent);
+
+        patchElement(null, n2, container, parentComponent, anchor);
       } else if (nextFlags & ShapeFlags.COMPONENT) {
         // 挂载组件
-        patchComponent(null, n2, container, parentComponent);
+        patchComponent(null, n2, container, parentComponent, anchor);
       }
     } else {
       const nextFlags = n2?.shapeFlag;
@@ -113,13 +107,13 @@ function renderOpsCreater(options: RendererOptions) {
       // 更新;
       if (prevFlags !== nextFlags) {
         // 节点类型不同直接替换
-        replaceVNode(n1, n2, container);
+        replaceVNode(n1, n2, container, anchor);
       } else if (nextFlags & ShapeFlags.ELEMENT) {
         // 比较元素节点
-        patchElement(n1, n2, container, parentComponent);
+        patchElement(n1, n2, container, parentComponent, anchor);
       } else if (nextFlags & ShapeFlags.COMPONENT) {
         // TODO 比较组件节点
-        patchComponent(n1, n2, container, parentComponent);
+        patchComponent(n1, n2, container, parentComponent, anchor);
       } else if (nextFlags & ShapeFlags.TEXT_CHILDREN) {
         // 比较文本节点
         patchText(n1, n2);
@@ -127,11 +121,22 @@ function renderOpsCreater(options: RendererOptions) {
     }
   };
 
+  // 挂载
+  function mount(
+    vnode: VNode,
+    container: RendererElement,
+    parentComponent?: any,
+    anchor = null
+  ) {
+    patch(null, vnode, container, parentComponent, anchor);
+  }
+
   function patchElement(
     n1: VNode,
     n2: VNode,
     container: RendererElement,
-    parentComponent = null
+    parentComponent = null,
+    anchor = null
   ) {
     const flag = n2.shapeFlag;
     let el;
@@ -160,7 +165,7 @@ function renderOpsCreater(options: RendererOptions) {
         }
       }
       // 节点插入容器
-      insert(el, container);
+      insert(el, container, anchor);
     } else {
       if (n1.type !== n2.type) {
         // 标签不同直接替换元素
@@ -196,7 +201,15 @@ function renderOpsCreater(options: RendererOptions) {
     }
   };
 
-  const replaceVNode = (n1: VNode, n2: VNode, container: RendererElement) => {
+  const replaceVNode = (
+    n1: VNode,
+    n2: VNode,
+    container: RendererElement,
+    anchor = null
+  ) => {
+    if (n2) {
+      mount(n2, container, null, n1.el);
+    }
     if (n1.shapeFlag & ShapeFlags.COMPONENT) {
       //  卸载组件
       // beforeUnmount
@@ -212,16 +225,14 @@ function renderOpsCreater(options: RendererOptions) {
     } else {
       remove(n1.el);
     }
-    if (n2) {
-      mount(n2, container);
-    }
   };
 
   function patchComponent(
     n1: VNode,
     n2: VNode,
     container: RendererElement,
-    parentComponent = null
+    parentComponent = null,
+    anchor = null
   ) {
     if (!n1) {
       // 挂载
@@ -246,7 +257,6 @@ function renderOpsCreater(options: RendererOptions) {
     instance.update = effect(
       () => {
         if (!instance.isMounted) {
-          console.log("mount component");
           const { bm, m } = instance;
           // 首次挂载
           // TODO beforeMounted hooks
@@ -265,7 +275,6 @@ function renderOpsCreater(options: RendererOptions) {
             queuePostFlushCb(m);
           }
         } else {
-          console.log("update component");
           // 非首次
           let { next, bu, u } = instance;
 
