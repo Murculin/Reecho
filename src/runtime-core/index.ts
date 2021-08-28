@@ -10,3 +10,5 @@ export {
   onBeforeUnmount,
   onUnmounted,
 } from "./apiLifecycle";
+
+export { provide, inject, InjectionKey } from "./apiInject";

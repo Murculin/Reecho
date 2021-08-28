@@ -1,5 +1,5 @@
 import { ShapeFlags } from "src/shared/shapFlags";
-import { VNode, VNodeProps } from "./vnode";
+import { VNode } from "./vnode";
 import { createAppApI } from "./createAppApi";
 import {
   setupComponent,
@@ -354,6 +354,8 @@ function renderOpsCreater(options: RendererOptions) {
           });
           return;
         }
+        c1 = c1.filter((item) => item !== false && item !== null);
+        c2 = c2.filter((item) => item !== false && item !== null);
         // 双端比较
         let oldStartIdx = 0;
         let oldEndIdx = c1.length - 1;
@@ -413,7 +415,12 @@ function renderOpsCreater(options: RendererOptions) {
               c1[index] = undefined;
             } else {
               // 没找到就挂载新节点
-              mount(newStartVNode, container, oldStartVNode.el);
+              mount(
+                newStartVNode,
+                container,
+                oldStartVNode?.instance?.parent || null,
+                oldStartVNode.el
+              );
             }
             // 将 newStartIdx 下移一位
             newStartVNode = c2[++newStartIdx];
@@ -422,7 +429,7 @@ function renderOpsCreater(options: RendererOptions) {
           if (oldEndIdx < oldStartIdx) {
             // 添加新节点
             for (let i = newStartIdx; i <= newEndIdx; i++) {
-              mount(c2[i], container);
+              mount(c2[i], container, null, oldStartVNode?.el || null);
             }
           } else if (newEndIdx < newStartIdx) {
             // 移除操作

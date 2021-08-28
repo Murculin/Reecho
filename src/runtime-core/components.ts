@@ -118,7 +118,7 @@ export function formatPropsChildren(children: any): any {
   return isArray(children) && children.length === 1 ? children[0] : children;
 }
 
-export let currentInstance = null;
+export let currentInstance: ComponentInstance | null = null;
 // 在组件函数中获取组件实例 instance
 export function getCurrentInstance() {
   return currentInstance;
