@@ -1,57 +1,53 @@
-import { reactive, inject, provide } from "../../index";
+import { inject } from "../../index";
+import { createSlice, Action, createStore } from "../../store/createSlice";
 
-interface ListItem {
-  id: number;
-  text?: string | number;
-}
-
-interface State {
-  list: ListItem[];
-}
-
-interface SliceData<T> {
-  state: T;
-  actions?: Function[];
-  getters?: Function[];
-}
-
-function createSlice<T extends object>(
-  nameSpace: string | Symbol,
-  data: SliceData<T>
-) {
-  let { state, actions } = data;
-  function withActions(fn: Function) {
-    return (...args) => fn(data, ...arguments);
-  }
-
-  return {
-    state: reactive(state),
-  };
-}
-
-export const store = {
-  state: reactive({
-    list: [{ id: 0 }],
-    age: 18,
-  }),
-  addListItem() {
-    const list = [...this.state.list];
-    list.push({ id: list.length });
-    this.state.list = list;
+const countSlice = createSlice({
+  name: "count",
+  initialState: {
+    count: 1,
   },
-  addAge() {
-    this.state.age += 1;
+  mutations: {
+    increment: (state) => {
+      console.log("increment", state);
+      state.count += 1;
+    },
+    setCount: (state, action: Action<number>) => {
+      state.count = action.payload;
+    },
   },
-};
+});
 
-export type Store = typeof store;
+export const { increment } = countSlice.actions;
 
-export const createStore = () => {
-  provide("store", store);
-  return store;
-};
+const textSlice = createSlice({
+  name: "text",
+  initialState: {
+    text: "Hello",
+  },
+  mutations: {
+    setText(state, actions: Action<string>) {
+      state.text = actions.payload;
+    },
+  },
+});
 
-export const useStore = (nameSpace: string | Symbol = "store"): Store => {
-  const store: Store = inject(nameSpace);
-  return store;
-};
+export const { setText } = textSlice.actions;
+
+export const store = createStore({
+  modules: {
+    countSlice,
+    textSlice,
+  },
+});
+
+export function useStore() {
+  const store = inject("store");
+  console.log("state", store.state);
+  return [store.state, store.dispatch];
+}
+
+const dispatch = store.dispatch;
+dispatch(increment());
+dispatch(setText("World"));
+
+console.log("store", store);
