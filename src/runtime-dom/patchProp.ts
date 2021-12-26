@@ -24,10 +24,10 @@ export const patchProp = (
         // on开头视作事件
         key = key.toLowerCase();
         if (preValue) {
-          document.removeEventListener(key.slice(2), preValue);
+          el.removeEventListener(key.slice(2), preValue);
         }
         if (nextValue) {
-          document.addEventListener(key.slice(2), nextValue);
+          el.addEventListener(key.slice(2), nextValue);
         }
       } else if (domPropsRE.test(key)) {
         el[key] = nextValue;

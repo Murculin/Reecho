@@ -1,37 +1,39 @@
-import { reactive, computed, h, Component, provide } from "../index";
-
-import Child from "./Child";
-import { createStore, store } from "./store/index";
+import { useState, useEffect, h, Component } from "../index";
+import { onBeforeUpdate } from "../index";
 
 const App: Component = () => {
-  const store = createStore();
+  const [getCount, setCount] = useState(1);
 
-  const state = reactive({
-    title: "world",
-    count: 0,
-    list: [{id: -1}],
+  const [info, setInfo] = useState({
+    title: "test title",
+    desc: "Hi",
   });
+
   const add = () => {
-    state.count += 1;
-    store.addListItem();
-    // state.list.push({ id: state.count });
+    setCount(getCount() + 1);
   };
-  const showEndText = computed(() => {
-    return state.count > 3;
+
+  const setDesc = () => {
+    setInfo({ ...info(), desc: "Reecho" });
+  };
+
+  onBeforeUpdate(() => {
+    console.log("beforeUpdate");
+  });
+
+  useEffect(() => {
+    console.log("setTitle");
+    document.title = info().desc;
   });
 
   return () => {
     return (
       <div>
-        <h1>Test</h1>
-        <Child count={state.count}></Child>
-        {showEndText.value && <p>end</p>}
+        <button onClick={setDesc}>setTitle</button>
         <button onClick={add}>add</button>
-        <ul>
-          {state.list.map((item) => (
-            <li key={item.id}>{item.id}</li>
-          ))}
-        </ul>
+        <div>{"count:" + getCount()}</div>
+        <h1>{info().title}</h1>
+        <p>{info().desc}</p>
       </div>
     );
   };
