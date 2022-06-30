@@ -1,20 +1,34 @@
-import { useState, useEffect, h, Component } from "../index";
-import { onBeforeUpdate } from "../index";
+import {
+  useState,
+  useEffect,
+  h,
+  Component,
+  onBeforeUpdate,
+  produce,
+} from "../index";
+import { useStore } from "./useStore";
+
+interface ChildProps {
+  text: string;
+}
+const Child: Component<ChildProps> = (props) => {
+  return () => <div style={{ backgroundColor: "red" }}>{props.text}</div>;
+};
 
 const App: Component = () => {
-  const [getCount, setCount] = useState(1);
+  const { getTextObj, setText, getAllText } = useStore();
 
   const [info, setInfo] = useState({
-    title: "test title",
-    desc: "Hi",
+    title: "Hello",
+    desc: "Reecho",
   });
 
-  const add = () => {
-    setCount(getCount() + 1);
-  };
-
   const setDesc = () => {
-    setInfo({ ...info(), desc: "Reecho" });
+    setInfo((s) => {
+      s.title = "a";
+      return s;
+    });
+    console.log(info());
   };
 
   onBeforeUpdate(() => {
@@ -23,17 +37,16 @@ const App: Component = () => {
 
   useEffect(() => {
     console.log("setTitle");
-    document.title = info().desc;
+    document.title = info().title;
   });
 
   return () => {
     return (
       <div>
         <button onClick={setDesc}>setTitle</button>
-        <button onClick={add}>add</button>
-        <div>{"count:" + getCount()}</div>
-        <h1>{info().title}</h1>
-        <p>{info().desc}</p>
+        <p>{info().title}</p>
+        <p>{getAllText()}</p>
+        <Child text={info().desc}></Child>
       </div>
     );
   };

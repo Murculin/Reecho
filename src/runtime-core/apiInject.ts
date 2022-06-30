@@ -24,8 +24,6 @@ export function inject<T = any>(
 
   if (currentInstance) {
     const provides = currentInstance.parent?.provides;
-    console.log(provides);
-    // console.log(currentInstance);
     if (provides && (key as string) in provides) {
       return provides[key as string];
     } else if (defaultValue) {

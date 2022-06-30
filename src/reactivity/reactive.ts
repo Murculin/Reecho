@@ -31,7 +31,6 @@ const mutableHandlers = {
     receiver: object
   ): boolean => {
     const oldValue = target[key];
-
     // 判断对数组/对象的操作是新增还是删除
     // 通过push pop splice等方法改变数组也可以判断
     const hadKey =
