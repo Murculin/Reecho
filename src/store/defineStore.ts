@@ -58,7 +58,6 @@ export function createOptionsStore(id: string, options: StoreConfig) {
     });
   });
   let store = { ...state(), ...actions };
-  console.log(store, "store");
 
   const storeProxy = new Proxy(store, {
     get(target, p: any, receiver) {
