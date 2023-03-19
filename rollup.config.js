@@ -8,8 +8,7 @@ import clear from "rollup-plugin-clear";
 import css from "rollup-plugin-css-only";
 
 export default {
-  // input: "src/index.ts",
-  input: "src/example/main.ts",
+  input: "src/index.ts",
   output: {
     // name: "Eff",
     format: "esm",

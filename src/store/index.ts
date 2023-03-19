@@ -1,0 +1,1 @@
+export { defineStore } from "./defineStore";

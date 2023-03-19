@@ -1,10 +1,7 @@
 {
-  "name": "toy-vue",
-  "version": "0.0.1",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "name": "reecho",
+  "version": "0.0.3",
+  "private": false,
   "scripts": {
     "dev": "rollup -c -w rollup.config.js",
     "build": "rm -fr lib && set NODE_ENV=production&& rollup -c rollup.config.js"
@@ -29,5 +26,24 @@
   "dependencies": {
     "@types/stylis": "^4.0.0",
     "stylis": "^4.0.10"
-  }
+  },
+  "description": "Reecho 是一款基于依赖收集的MVVM框架，它具有以下特点 - 声明式数据： 基于proxy的依赖收集 - 使用函数定义组件，但组件不会如React一样重复执行造成心智负担 - 读写分离，读取状态和更改状态统一使用函数，避免vue3的ref一样有时需要`xxx.value`有时不需要的不一致性 - 使用TS编写，类型友好",
+  "main": "src/index.ts",
+  "typings": "./dist/index.d.ts",
+  "module": "src/index.ts",
+  "files": ["dist", "src"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Murculin/Reecho.git"
+  },
+  "keywords": [
+    "mvvm",
+    "fontend"
+  ],
+  "author": "murculin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Murculin/Reecho/issues"
+  },
+  "homepage": "https://github.com/Murculin/Reecho#readme"
 }

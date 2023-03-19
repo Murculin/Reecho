@@ -6,6 +6,19 @@ Reecho 是一款基于依赖收集的MVVM框架，它具有以下特点
 - 读写分离，读取状态和更改状态统一使用函数，避免vue3的ref一样有时需要`xxx.value`有时不需要的不一致性
 - 使用TS编写，类型友好
 
+## 安装
+```
+npm i reecho
+```
+
+增加以下两个tsconfig配置
+```json
+"compilerOptions": {
+  "jsx": "react",
+  "jsxFactory": "h",
+}
+```
+
 ## 语法介绍
 
 ### 组件
