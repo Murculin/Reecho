@@ -48,7 +48,7 @@ createApp(App).mount("#app");
 ### 声明状态
 - 使用`useState`声明状态
 - `useState`返回`getState`和`setState`两个函数，分别用来读取和更改状态
-- `Reecho`中的`useState`时基于`proxy`实现的，为避免使用`xxx.value`这样的写法对开发者造成困扰，读取状态使用了函数
+- `Reecho`中的`useState`是基于`proxy`实现的，为避免使用`xxx.value`这样的写法对开发者造成困扰，读取状态使用了函数
 - 当状态改变时，依赖该状态的部分会被更新
 ```ts
 import { useState } from "reecho";
